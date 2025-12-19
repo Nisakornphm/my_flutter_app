@@ -64,7 +64,6 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: _resetCounter,
               child: const Text('Reset Counter'),
             ),
-            const Text('You have pushed the button this many times: testtttttt'),
           ],
         ),
       ),
