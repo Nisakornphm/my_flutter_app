@@ -35,9 +35,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   
-  // Bug 1: Unused variable
-  String unusedVariable = 'This is never used';
-  
   // Bug 2: Magic number without explanation
   final int MAGIC_NUMBER = 42;
 
