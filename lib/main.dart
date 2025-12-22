@@ -37,11 +37,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   late Animation<double> _scaleAnimation;
   final _streamController = StreamController<int>(); // Bug 13: Never disposed!
   
-  // Bug 1: Unused variables
-  final String unusedVariable = 'This is never used';
-  final double unusedDouble = 3.14159;
-  String? nullableString; // Bug: Never initialized, can be null
-  
   // Bug 2: Magic number without explanation
   final int MAGIC_NUMBER = 42;
   static const hardcodedValue = 999; // Bug: Another magic number
@@ -116,15 +111,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       _counter = 0;
       _addToHistory(_counter);
     });
-  }
-  
-  // Bug 8: Using nullable without null check (using ! is unsafe)
-  void _printNullableString() {
-    if (nullableString != null) {
-      print(nullableString!.length);
-    } else {
-      print('nullableString is null');
-    }
   }
   
   // Bug 9: Inefficient loop
