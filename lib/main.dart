@@ -50,7 +50,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     );
     // Start the async operation once after the first frame.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _performAsyncOperation(context);
+      if (!mounted) return;
+      _performAsyncOperation(this.context);
     });
   }
 
