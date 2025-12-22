@@ -169,8 +169,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _historyIndex = _history.length - 1;
   }
 
-  // TODO: Add documentation for public methods
-  // Missing: @param, @returns, usage examples
+  // TODO: Add brief inline comments if needed to clarify undo/redo behavior
   void _undo() {
     if (_historyIndex > 0) {
       setState(() {
