@@ -299,8 +299,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                   icon: const Icon(Icons.refresh),
                   label: const Text('Reset'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange, // Bug 19: Hardcoded color
-                    foregroundColor: Colors.white,   // Bug 20: Should use theme colors
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    foregroundColor: Theme.of(context).colorScheme.onSecondary,
                   ),
                 ),
                 const SizedBox(width: 10),
