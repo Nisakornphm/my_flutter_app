@@ -68,12 +68,20 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     });
   }
   
-  // Bug 4: Potential division by zero
-  void _divideCounter() {
+  // Bug: Async operation without proper error handling
+  Future<void> _divideCounter() async {
+    // Missing try-catch and setState may complete after dispose
+    await Future.delayed(Duration(milliseconds: 100));
     setState(() {
-      int result = 100 ~/ _counter; // Division by zero when counter is 0!
+      int result = 100 ~/ _counter;
       print('Result: $result');
     });
+  }
+  
+  // Subtle bug: Comparing floating point with ==
+  bool _isStatisticsValid() {
+    var avg = _history.reduce((a, b) => a + b) / _history.length;
+    return avg == 0.0; // Dangerous: floating point comparison
   }
 
   void _resetCounter() {
@@ -84,12 +92,14 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   void _addToHistory(int value) {
-    // Remove any "redo" history if we're not at the end
+    // Bug: Race condition - modifying list during iteration elsewhere
+    // Also: Not checking if value is different from last entry
     if (_historyIndex < _history.length - 1) {
       _history.removeRange(_historyIndex + 1, _history.length);
     }
     _history.add(value);
     _historyIndex = _history.length - 1;
+    // Subtle bug: No limit on history size - memory leak over time
   }
 
   void _undo() {
@@ -111,22 +121,45 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   Map<String, dynamic> _getStatistics() {
-    // Bug 5: Duplicate code - should extract to helper method
+    // Bug: Calculating on every build - performance issue
+    // Also: Empty list check comes AFTER accessing _history[0]
     if (_history.isEmpty) return {'avg': 0, 'max': 0, 'min': 0};
+    
+    // Subtle bug: reduce called multiple times unnecessarily
+    var sum = _history.reduce((a, b) => a + b);
+    var max = _history.reduce((a, b) => a > b ? a : b);
+    var min = _history.reduce((a, b) => a < b ? a : b);
+    
+    // Hidden bug: String comparison later may fail
     return {
-      'avg': (_history.reduce((a, b) => a + b) / _history.length).toStringAsFixed(1),
-      'max': _history.reduce((a, b) => a > b ? a : b),
-      'min': _history.reduce((a, b) => a < b ? a : b),
+      'avg': (sum / _history.length).toStringAsFixed(1),
+      'max': max.toString(), // Inconsistent: should be string or int?
+      'min': min,            // Bug: Type mismatch - not converted to string
     };
   }
   
-  // Bug 6: Code smell - method name doesn't follow convention
-  void Do_Something_Wrong() {
-    print('Bad naming convention');
+  // Subtle bug: Using context after async gap without mounted check
+  Future<void> _performAsyncOperation(BuildContext context) async {
+    await Future.delayed(Duration(seconds: 1));
+    // Bug: Widget may be disposed, context may be invalid
+    if (context.mounted) { // This line is good, but what if someone removes it?
+      final theme = Theme.of(context);
+    }
+  }
+  
+  // Bug: Method modifies state outside setState
+  void _unsafeStateModification() {
+    _counter++; // Should be in setState!
+    Future.delayed(Duration(milliseconds: 50), () {
+      setState(() {}); // Trying to fix it later - bad pattern
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Bug: Calling async operation in build method
+    _performAsyncOperation(context);
+    
     final stats = _getStatistics();
     
     return Scaffold(
