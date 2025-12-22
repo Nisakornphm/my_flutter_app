@@ -65,12 +65,24 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     });
   }
   
-  // Bug 4: Potential division by zero
-  void _divideCounter() {
+  // Bug: Async operation without proper error handling
+  Future<void> _divideCounter() async {
+    // Missing try-catch and setState may complete after dispose
+    await Future.delayed(Duration(milliseconds: 100));
     setState(() {
-      int result = 100 ~/ _counter; // Division by zero when counter is 0!
+      int result = 100 ~/ _counter;
       print('Result: $result');
     });
+  }
+  
+  // Subtle bug: Comparing floating point with ==
+  bool _isStatisticsValid() {
+    if (_history.isEmpty) {
+      return false;
+    }
+    var avg = _history.reduce((a, b) => a + b) / _history.length;
+    const double epsilon = 1e-9;
+    return (avg - 0.0).abs() < epsilon; // Use tolerance-based floating point comparison
   }
 
   void _resetCounter() {
@@ -81,12 +93,14 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   void _addToHistory(int value) {
-    // Remove any "redo" history if we're not at the end
+    // Bug: Race condition - modifying list during iteration elsewhere
+    // Also: Not checking if value is different from last entry
     if (_historyIndex < _history.length - 1) {
       _history.removeRange(_historyIndex + 1, _history.length);
     }
     _history.add(value);
     _historyIndex = _history.length - 1;
+    // Subtle bug: No limit on history size - memory leak over time
   }
 
   void _undo() {
@@ -108,7 +122,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   Map<String, dynamic> _getStatistics() {
-    // Bug 5: Duplicate code - should extract to helper method
+    // Bug: Calculating on every build - performance issue
+    // Also: Empty list check comes AFTER accessing _history[0]
     if (_history.isEmpty) return {'avg': 0, 'max': 0, 'min': 0};
 
     int sum = 0;
@@ -134,9 +149,42 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     };
   }
   
-  // Bug 6: Code smell - method name doesn't follow convention
-  void Do_Something_Wrong() {
-    print('Bad naming convention');
+  Future<void> _performAsyncOperation(BuildContext context) async {
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Safely use the context only if the widget is still mounted after the async gap.
+    if (!context.mounted) {
+      return;
+    }
+
+    final theme = Theme.of(context);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Async operation completed',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onPrimary,
+          ),
+        ),
+        backgroundColor: theme.colorScheme.primary,
+      ),
+    );
+  }
+  
+  // Fixed: Method now modifies state inside setState
+  void _unsafeStateModification() {
+    setState(() {
+      _counter++; // State change is now correctly wrapped in setState
+    });
+  }
+  @override
+  void initState() {
+    super.initState();
+    // Start the async operation once after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _performAsyncOperation(context);
+    });
   }
 
   @override
