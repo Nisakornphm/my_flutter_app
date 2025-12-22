@@ -227,7 +227,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 const SizedBox(width: 10),
                 // Bug 7: Divide button with potential crash
                 ElevatedButton.icon(
-                  onPressed: _divideCounter,
+                  onPressed: _counter != 0 ? _divideCounter : null,
                   icon: const Icon(Icons.calculate),
                   label: const Text('Divide'),
                   style: ElevatedButton.styleFrom(
