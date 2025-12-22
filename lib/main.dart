@@ -35,9 +35,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   
-  // Bug 1: Unused variable
-  String unusedVariable = 'This is never used';
-  
   // Bug 2: Magic number without explanation
   final int MAGIC_NUMBER = 42;
 
@@ -124,17 +121,27 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     // Bug: Calculating on every build - performance issue
     // Also: Empty list check comes AFTER accessing _history[0]
     if (_history.isEmpty) return {'avg': 0, 'max': 0, 'min': 0};
-    
-    // Subtle bug: reduce called multiple times unnecessarily
-    var sum = _history.reduce((a, b) => a + b);
-    var max = _history.reduce((a, b) => a > b ? a : b);
-    var min = _history.reduce((a, b) => a < b ? a : b);
-    
-    // Hidden bug: String comparison later may fail
+
+    int sum = 0;
+    int min = _history.first;
+    int max = _history.first;
+
+    for (final value in _history) {
+      sum += value;
+      if (value < min) {
+        min = value;
+      }
+      if (value > max) {
+        max = value;
+      }
+    }
+
+    final String avg = (sum / _history.length).toStringAsFixed(1);
+
     return {
-      'avg': (sum / _history.length).toStringAsFixed(1),
-      'max': max.toString(), // Inconsistent: should be string or int?
-      'min': min,            // Bug: Type mismatch - not converted to string
+      'avg': avg,
+      'max': max,
+      'min': min,
     };
   }
   
@@ -246,7 +253,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 const SizedBox(width: 10),
                 // Bug 7: Divide button with potential crash
                 ElevatedButton.icon(
-                  onPressed: _divideCounter,
+                  onPressed: _counter != 0 ? _divideCounter : null,
                   icon: const Icon(Icons.calculate),
                   label: const Text('Divide'),
                   style: ElevatedButton.styleFrom(
