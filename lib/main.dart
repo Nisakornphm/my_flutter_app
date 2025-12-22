@@ -151,7 +151,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _history.add(value);
     
     // Enforce maximum history size to prevent memory issues
-    if (_history.length > _maxHistorySize) {
+    // Use >= to ensure we never exceed the max size
+    while (_history.length > _maxHistorySize) {
       // Remove the oldest entry (index 0)
       _history.removeAt(0);
     }
