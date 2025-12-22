@@ -67,6 +67,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   void dispose() {
     // Bug 3: Memory leak - AnimationController not disposed!
     // _animationController.dispose();
+    _streamController.close(); // Fix Bug 13: Dispose StreamController to prevent memory leak
     super.dispose();
   }
 
