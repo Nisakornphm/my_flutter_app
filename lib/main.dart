@@ -77,8 +77,12 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   
   // Subtle bug: Comparing floating point with ==
   bool _isStatisticsValid() {
+    if (_history.isEmpty) {
+      return false;
+    }
     var avg = _history.reduce((a, b) => a + b) / _history.length;
-    return avg == 0.0; // Dangerous: floating point comparison
+    const double epsilon = 1e-9;
+    return (avg - 0.0).abs() < epsilon; // Use tolerance-based floating point comparison
   }
 
   void _resetCounter() {
