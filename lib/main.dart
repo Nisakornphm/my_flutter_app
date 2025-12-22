@@ -37,9 +37,19 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   late Animation<double> _scaleAnimation;
   final _streamController = StreamController<int>(); // Bug 13: Never disposed!
   
-  // Bug 2: Magic number without explanation
+  // Maximum number of history entries to prevent unbounded memory growth
+  static const int _maxHistorySize = 100;
+  
+  // Bug 1: Unused variables
+  final String unusedVariable = 'This is never used';
+  final double unusedDouble = 3.14159;
+  String? nullableString; // Bug: Never initialized, can be null
+  
+  // Bug 2: Magic numbers without explanation
+  /// Example magic number used for demonstration purposes in this sample.
   final int MAGIC_NUMBER = 42;
-  static const hardcodedValue = 999; // Bug: Another magic number
+  /// Upper bound demo value used in this sample; 999 is chosen arbitrarily for UI/testing.
+  static const int hardcodedValue = 999;
 
   @override
   void initState() {
@@ -128,7 +138,18 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     if (_historyIndex < _history.length - 1) {
       _history.removeRange(_historyIndex + 1, _history.length);
     }
-    _history.add(value); // Bug 12: No limit on history size - memory leak!
+    
+    _history.add(value);
+    
+    // Enforce maximum history size to prevent memory issues
+    if (_history.length > _maxHistorySize) {
+      // Remove excess entries from the beginning (oldest entries)
+      // Use removeRange for better performance when removing multiple entries
+      final excessCount = _history.length - _maxHistorySize;
+      _history.removeRange(0, excessCount);
+    }
+    
+    // Adjust the history index to point to the last entry
     _historyIndex = _history.length - 1;
   }
 
@@ -233,9 +254,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text( // Bug 16: Missing const
+            const Text( // Bug 16: Missing const
               'Counter Value:',
-              style: TextStyle(fontSize: 18), // Bug 17: This TextStyle should be const too
+              style: const TextStyle(fontSize: 18), // Bug 17: This TextStyle should be const too
             ),
             const SizedBox(height: 10),
             ScaleTransition(
@@ -255,9 +276,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    Text( // Bug 18: Missing const - causes unnecessary rebuilds
+                    const Text( // Bug 18: Missing const - causes unnecessary rebuilds
                       'Statistics',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     Row(
