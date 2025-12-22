@@ -110,10 +110,27 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   Map<String, dynamic> _getStatistics() {
     // Bug 5: Duplicate code - should extract to helper method
     if (_history.isEmpty) return {'avg': 0, 'max': 0, 'min': 0};
+
+    int sum = 0;
+    int min = _history.first;
+    int max = _history.first;
+
+    for (final value in _history) {
+      sum += value;
+      if (value < min) {
+        min = value;
+      }
+      if (value > max) {
+        max = value;
+      }
+    }
+
+    final String avg = (sum / _history.length).toStringAsFixed(1);
+
     return {
-      'avg': (_history.reduce((a, b) => a + b) / _history.length).toStringAsFixed(1),
-      'max': _history.reduce((a, b) => a > b ? a : b),
-      'min': _history.reduce((a, b) => a < b ? a : b),
+      'avg': avg,
+      'max': max,
+      'min': min,
     };
   }
   
