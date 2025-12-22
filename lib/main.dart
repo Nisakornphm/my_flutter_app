@@ -163,10 +163,16 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Start the async operation once after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _performAsyncOperation(context);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Bug: Calling async operation in build method
-    _performAsyncOperation(context);
-    
     final stats = _getStatistics();
     
     return Scaffold(
