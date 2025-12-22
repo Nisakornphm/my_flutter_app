@@ -42,9 +42,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   final double unusedDouble = 3.14159;
   String? nullableString; // Bug: Never initialized, can be null
   
-  // Bug 2: Magic number without explanation
+  // Bug 2: Magic numbers without explanation
+  /// Example magic number used for demonstration purposes in this sample.
   final int MAGIC_NUMBER = 42;
-  static const hardcodedValue = 999; // Bug: Another magic number
+  /// Upper bound demo value used in this sample; 999 is chosen arbitrarily for UI/testing.
+  static const int hardcodedValue = 999;
 
   @override
   void initState() {
