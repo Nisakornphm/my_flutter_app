@@ -106,7 +106,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   
   // Bug 15: String comparison case-sensitive
   bool _checkTitle(String input) {
-    return input == 'Flutter Demo'; // Bug: Should use equalsIgnoreCase
+    // เปรียบเทียบแบบไม่สนใจตัวพิมพ์เล็ก/ใหญ่ โดย normalize ทั้งสองด้าน
+    return input.toLowerCase() == 'flutter demo'.toLowerCase();
   }
 
   void _resetCounter() {
