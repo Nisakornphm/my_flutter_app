@@ -29,6 +29,9 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+// TODO: Add unit tests for counter logic
+// TODO: Add widget tests for UI interactions
+// TODO: Add integration tests for full user flows
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
   int _counter = 0;
   final List<int> _history = [0];
@@ -37,10 +40,16 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   late Animation<double> _scaleAnimation;
   final _streamController = StreamController<int>(); // Bug 13: Never disposed!
   
+  // Maximum number of history entries to prevent unbounded memory growth
+  static const int _maxHistorySize = 100;
+  
   // Bug 1: Unused variables
   final String unusedVariable = 'This is never used';
   final double unusedDouble = 3.14159;
   String? nullableString; // Bug: Never initialized, can be null
+  
+  // TODO: Implement proper state management using Provider or Riverpod
+  // Current implementation uses setState which doesn't scale well
   
   // Bug 2: Magic numbers without explanation
   /// Example magic number used for demonstration purposes in this sample.
@@ -69,9 +78,12 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   void dispose() {
     // Bug 3: Memory leak - AnimationController not disposed!
     // _animationController.dispose();
+    _streamController.close(); // Fix Bug 13: Dispose StreamController to prevent memory leak
     super.dispose();
   }
 
+  // TODO: Consider using AnimatedBuilder or implicit animations
+  // Current approach triggers unnecessary rebuilds
   void _incrementCounter() {
     setState(() {
       _counter++;
@@ -88,6 +100,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   
   // Bug 4: Async operation without mounted check
   // Bug 5: Division by zero if counter is 0
+  // TODO: Add proper error handling with user feedback
+  // Should show dialog or snackbar when errors occur
   Future<void> _divideCounter() async {
     await Future.delayed(Duration(milliseconds: 100));
     // Missing: if (!mounted) return;
@@ -120,15 +134,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     });
   }
   
-  // Bug 8: Using nullable without null check (using ! is unsafe)
-  void _printNullableString() {
-    if (nullableString != null) {
-      print(nullableString!.length);
-    } else {
-      print('nullableString is null');
-    }
-  }
-  
   // Bug 9: Inefficient loop
   int _calculateSum() {
     int sum = 0;
@@ -138,13 +143,26 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     return sum;
   }
 
+  // TODO: Extract history management to separate class/service
+  // This method has too many responsibilities
   void _addToHistory(int value) {
     // Bug 10: Race condition - modifying list during iteration elsewhere
     // Bug 11: Not checking if value is different from last entry
     if (_historyIndex < _history.length - 1) {
       _history.removeRange(_historyIndex + 1, _history.length);
     }
-    _history.add(value); // Bug 12: No limit on history size - memory leak!
+    
+    _history.add(value);
+    
+    // Enforce maximum history size to prevent memory issues
+    if (_history.length > _maxHistorySize) {
+      // Remove excess entries from the beginning (oldest entries)
+      // Use removeRange for better performance when removing multiple entries
+      final excessCount = _history.length - _maxHistorySize;
+      _history.removeRange(0, excessCount);
+    }
+    
+    // Adjust the history index to point to the last entry
     _historyIndex = _history.length - 1;
   }
 
@@ -168,7 +186,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
   Map<String, dynamic> _getStatistics() {
     // Bug 7: Performance issue - calculating on EVERY build!
-    // Should cache or use computed property
+    // TODO: Cache this result or use memoization
+    // Currently recalculates even when _history hasn't changed
     if (_history.isEmpty) return {'avg': 0, 'max': 0, 'min': 0};
 
     int sum = 0;
@@ -249,9 +268,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text( // Bug 16: Missing const
+            // TODO: Use localization (l10n) for all text strings
+            // Currently hardcoded in English only
+            const Text( // Bug 16: Missing const
               'Counter Value:',
-              style: TextStyle(fontSize: 18), // Bug 17: This TextStyle should be const too
+              style: const TextStyle(fontSize: 18), // Bug 17: This TextStyle should be const too
             ),
             const SizedBox(height: 10),
             ScaleTransition(
@@ -271,9 +292,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    Text( // Bug 18: Missing const - causes unnecessary rebuilds
+                    const Text( // Bug 18: Missing const - causes unnecessary rebuilds
                       'Statistics',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     Row(
@@ -305,8 +326,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                   icon: const Icon(Icons.refresh),
                   label: const Text('Reset'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange, // Bug 19: Hardcoded color
-                    foregroundColor: Colors.white,   // Bug 20: Should use theme colors
+                    backgroundColor: Theme.of(context).colorScheme.secondary,
+                    foregroundColor: Theme.of(context).colorScheme.onSecondary,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -339,6 +360,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           ],
         ),
       ),
+      // TODO: Add semantic labels for screen readers
+      // TODO: Support keyboard navigation
+      // TODO: Ensure color contrast meets WCAG AA standards
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
