@@ -35,6 +35,10 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   
+  // Bug 1: Unused variables
+  final String unusedVariable = 'This is never used';
+  final double unusedDouble = 3.14159;
+  
   // Bug 2: Magic number without explanation
   final int MAGIC_NUMBER = 42;
 
@@ -57,7 +61,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
   @override
   void dispose() {
-    // Bug 3: Comment out dispose - potential memory leak!
+    // Bug 3: Memory leak - AnimationController not disposed!
     // _animationController.dispose();
     super.dispose();
   }
@@ -66,16 +70,23 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     setState(() {
       _counter++;
       _addToHistory(_counter);
-      _animationController.forward().then((_) => _animationController.reverse());
+      _animationController.forward().then((_) {
+        _animationController.reverse();
+        // Bug 6: Using context in callback without checking mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Counter: $_counter')),
+        );
+      });
     });
   }
   
-  // Bug: Async operation without proper error handling
+  // Bug 4: Async operation without mounted check
+  // Bug 5: Division by zero if counter is 0
   Future<void> _divideCounter() async {
-    // Missing try-catch and setState may complete after dispose
     await Future.delayed(Duration(milliseconds: 100));
+    // Missing: if (!mounted) return;
     setState(() {
-      int result = 100 ~/ _counter;
+      int result = 100 ~/ _counter; // Can crash if _counter = 0!
       print('Result: $result');
     });
   }
@@ -127,8 +138,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   Map<String, dynamic> _getStatistics() {
-    // Bug: Calculating on every build - performance issue
-    // Also: Empty list check comes AFTER accessing _history[0]
+    // Bug 7: Performance issue - calculating on EVERY build!
+    // Should cache or use computed property
     if (_history.isEmpty) return {'avg': 0, 'max': 0, 'min': 0};
 
     int sum = 0;
