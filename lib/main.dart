@@ -48,6 +48,10 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
+    // Start the async operation once after the first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _performAsyncOperation(context);
+    });
   }
 
   @override
@@ -171,19 +175,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       ),
     );
   }
-  
+
   // Fixed: Method now modifies state inside setState
   void _unsafeStateModification() {
     setState(() {
       _counter++; // State change is now correctly wrapped in setState
-    });
-  }
-  @override
-  void initState() {
-    super.initState();
-    // Start the async operation once after the first frame.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _performAsyncOperation(context);
     });
   }
 
