@@ -93,7 +93,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       // Bug: Unhandled Future - no error handling for animation
       _animationController.forward().then((_) {
         _animationController.reverse();
-        // Bug 6: Using context in callback without checking mounted
+        // Fix: Check if widget is still mounted before using context
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Counter: $_counter')),
         );
