@@ -60,6 +60,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
+    // Bug: Magic number - 200ms not explained
+    // TODO: Extract to named constant with explanation
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 200),
       vsync: this,
@@ -88,13 +90,14 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     setState(() {
       _counter++;
       _addToHistory(_counter);
+      // Bug: Unhandled Future - no error handling for animation
       _animationController.forward().then((_) {
         _animationController.reverse();
         // Bug 6: Using context in callback without checking mounted
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Counter: $_counter')),
         );
-      });
+      }); // TODO: Add .catchError() or try-catch
     });
   }
   
@@ -166,6 +169,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     _historyIndex = _history.length - 1;
   }
 
+  // TODO: Add documentation for public methods
+  // Missing: @param, @returns, usage examples
   void _undo() {
     if (_historyIndex > 0) {
       setState(() {
@@ -176,6 +181,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   void _redo() {
+    // TODO: Refactor _undo and _redo to reduce duplication
+    // Consider creating a generic _navigateHistory(int direction) method
     if (_historyIndex < _history.length - 1) {
       setState(() {
         _historyIndex++;
@@ -214,6 +221,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
   
   Future<void> _performAsyncOperation(BuildContext context) async {
+    // TODO: Make timeout configurable via settings
+    // Hardcoded 1 second may not suit all use cases
     await Future.delayed(const Duration(seconds: 1));
 
     // Safely use the context only if the widget is still mounted after the async gap.
@@ -299,6 +308,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                     const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      // TODO: Add keys to list items for better performance
                       children: [
                         _StatItem(label: 'Average', value: stats['avg'].toString()),
                         _StatItem(label: 'Max', value: stats['max'].toString()),
@@ -345,6 +355,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 ElevatedButton.icon(
                   onPressed: _history.length > 1
                       ? () {
+                          // TODO: Extract this to separate method
+                          // Deep nesting makes code hard to read and test
                           setState(() {
                             _history.clear();
                             _history.add(_counter);
@@ -378,6 +390,7 @@ class _StatItem extends StatelessWidget {
 
   const _StatItem({required this.label, required this.value});
 
+  // TODO: Use theme colors instead of hardcoded values
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -387,7 +400,7 @@ class _StatItem extends StatelessWidget {
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.blue,
+            color: Colors.blue, // Bug: Hardcoded color
           ),
         ),
         Text(
