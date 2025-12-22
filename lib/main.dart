@@ -29,6 +29,9 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
+// TODO: Add unit tests for counter logic
+// TODO: Add widget tests for UI interactions
+// TODO: Add integration tests for full user flows
 class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
   int _counter = 0;
   final List<int> _history = [0];
@@ -44,6 +47,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   final String unusedVariable = 'This is never used';
   final double unusedDouble = 3.14159;
   String? nullableString; // Bug: Never initialized, can be null
+  
+  // TODO: Implement proper state management using Provider or Riverpod
+  // Current implementation uses setState which doesn't scale well
   
   // Bug 2: Magic numbers without explanation
   /// Example magic number used for demonstration purposes in this sample.
@@ -76,6 +82,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     super.dispose();
   }
 
+  // TODO: Consider using AnimatedBuilder or implicit animations
+  // Current approach triggers unnecessary rebuilds
   void _incrementCounter() {
     setState(() {
       _counter++;
@@ -92,6 +100,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   
   // Bug 4: Async operation without mounted check
   // Bug 5: Division by zero if counter is 0
+  // TODO: Add proper error handling with user feedback
+  // Should show dialog or snackbar when errors occur
   Future<void> _divideCounter() async {
     await Future.delayed(Duration(milliseconds: 100));
     // Missing: if (!mounted) return;
@@ -133,6 +143,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     return sum;
   }
 
+  // TODO: Extract history management to separate class/service
+  // This method has too many responsibilities
   void _addToHistory(int value) {
     // Bug 10: Race condition - modifying list during iteration elsewhere
     // Bug 11: Not checking if value is different from last entry
@@ -174,7 +186,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
   Map<String, dynamic> _getStatistics() {
     // Bug 7: Performance issue - calculating on EVERY build!
-    // Should cache or use computed property
+    // TODO: Cache this result or use memoization
+    // Currently recalculates even when _history hasn't changed
     if (_history.isEmpty) return {'avg': 0, 'max': 0, 'min': 0};
 
     int sum = 0;
@@ -255,6 +268,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // TODO: Use localization (l10n) for all text strings
+            // Currently hardcoded in English only
             const Text( // Bug 16: Missing const
               'Counter Value:',
               style: const TextStyle(fontSize: 18), // Bug 17: This TextStyle should be const too
@@ -345,6 +360,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           ],
         ),
       ),
+      // TODO: Add semantic labels for screen readers
+      // TODO: Support keyboard navigation
+      // TODO: Ensure color contrast meets WCAG AA standards
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
