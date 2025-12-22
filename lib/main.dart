@@ -307,7 +307,6 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                     const SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      // TODO: Add keys to list items for better performance
                       children: [
                         _StatItem(label: 'Average', value: stats['avg'].toString()),
                         _StatItem(label: 'Max', value: stats['max'].toString()),
