@@ -125,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   int _calculateSum() {
     int sum = 0;
     for (int i = 0; i < _history.length; i++) {
-      sum = sum + _history[i]; // Should use += or reduce()
+      sum += _history[i]; // Use += for clearer accumulation
     }
     return sum;
   }
