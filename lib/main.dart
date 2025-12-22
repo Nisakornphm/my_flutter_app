@@ -149,13 +149,27 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     };
   }
   
-  // Subtle bug: Using context after async gap without mounted check
   Future<void> _performAsyncOperation(BuildContext context) async {
-    await Future.delayed(Duration(seconds: 1));
-    // Bug: Widget may be disposed, context may be invalid
-    if (context.mounted) { // This line is good, but what if someone removes it?
-      final theme = Theme.of(context);
+    await Future.delayed(const Duration(seconds: 1));
+
+    // Safely use the context only if the widget is still mounted after the async gap.
+    if (!context.mounted) {
+      return;
     }
+
+    final theme = Theme.of(context);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Async operation completed',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onPrimary,
+          ),
+        ),
+        backgroundColor: theme.colorScheme.primary,
+      ),
+    );
   }
   
   // Bug: Method modifies state outside setState
