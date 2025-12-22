@@ -101,7 +101,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       return false;
     }
     var avg = _history.reduce((a, b) => a + b) / _history.length;
-    return avg == 0.0; // Bug: Direct comparison of doubles!
+    const double epsilon = 1e-9;
+    return avg.abs() < epsilon; // Use tolerance-based comparison instead of direct ==
   }
   
   // Bug 15: String comparison case-sensitive
