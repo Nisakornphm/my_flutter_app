@@ -263,7 +263,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    Text( // Bug 18: Missing const - causes unnecessary rebuilds
+                    const Text( // Bug 18: Missing const - causes unnecessary rebuilds
                       'Statistics',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
