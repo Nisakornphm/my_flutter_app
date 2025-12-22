@@ -172,14 +172,12 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     );
   }
   
-  // Bug: Method modifies state outside setState
+  // Fixed: Method now modifies state inside setState
   void _unsafeStateModification() {
-    _counter++; // Should be in setState!
-    Future.delayed(Duration(milliseconds: 50), () {
-      setState(() {}); // Trying to fix it later - bad pattern
+    setState(() {
+      _counter++; // State change is now correctly wrapped in setState
     });
   }
-
   @override
   void initState() {
     super.initState();
