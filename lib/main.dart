@@ -251,7 +251,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
           children: <Widget>[
             const Text( // Bug 16: Missing const
               'Counter Value:',
-              style: TextStyle(fontSize: 18), // Bug 17: This TextStyle should be const too
+              style: const TextStyle(fontSize: 18), // Bug 17: This TextStyle should be const too
             ),
             const SizedBox(height: 10),
             ScaleTransition(
