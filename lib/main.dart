@@ -220,8 +220,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
   
   Future<void> _performAsyncOperation(BuildContext context) async {
-    // TODO: Make timeout configurable via settings
-    // Hardcoded 1 second may not suit all use cases
+    // Wait 1 second to simulate an asynchronous operation for demonstration purposes.
     await Future.delayed(const Duration(seconds: 1));
 
     // Safely use the context only if the widget is still mounted after the async gap.
