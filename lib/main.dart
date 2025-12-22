@@ -154,11 +154,10 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     if (_history.length > _maxHistorySize) {
       // Remove the oldest entry (index 0)
       _history.removeAt(0);
-      // Adjust the history index since we removed an element from the beginning
-      _historyIndex = _history.length - 1;
-    } else {
-      _historyIndex = _history.length - 1;
     }
+    
+    // Adjust the history index to point to the last entry
+    _historyIndex = _history.length - 1;
   }
 
   void _undo() {
