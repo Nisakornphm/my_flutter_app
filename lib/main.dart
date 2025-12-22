@@ -120,7 +120,11 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   
   // Bug 8: Using nullable without null check (using ! is unsafe)
   void _printNullableString() {
-    print(nullableString!.length); // Bug: Using ! without checking - will crash if null!
+    if (nullableString != null) {
+      print(nullableString!.length);
+    } else {
+      print('nullableString is null');
+    }
   }
   
   // Bug 9: Inefficient loop
