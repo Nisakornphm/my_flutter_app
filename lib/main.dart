@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -34,9 +35,18 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   int _historyIndex = 0;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  final _streamController = StreamController<int>(); // Bug 13: Never disposed!
   
-  // Bug 2: Magic number without explanation
+  // Bug 1: Unused variables
+  final String unusedVariable = 'This is never used';
+  final double unusedDouble = 3.14159;
+  String? nullableString; // Bug: Never initialized, can be null
+  
+  // Bug 2: Magic numbers without explanation
+  /// Example magic number used for demonstration purposes in this sample.
   final int MAGIC_NUMBER = 42;
+  /// Upper bound demo value used in this sample; 999 is chosen arbitrarily for UI/testing.
+  static const int hardcodedValue = 999;
 
   @override
   void initState() {
@@ -57,7 +67,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
 
   @override
   void dispose() {
-    // Bug 3: Comment out dispose - potential memory leak!
+    // Bug 3: Memory leak - AnimationController not disposed!
     // _animationController.dispose();
     super.dispose();
   }
@@ -66,28 +76,41 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     setState(() {
       _counter++;
       _addToHistory(_counter);
-      _animationController.forward().then((_) => _animationController.reverse());
+      _animationController.forward().then((_) {
+        _animationController.reverse();
+        // Bug 6: Using context in callback without checking mounted
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Counter: $_counter')),
+        );
+      });
     });
   }
   
-  // Bug: Async operation without proper error handling
+  // Bug 4: Async operation without mounted check
+  // Bug 5: Division by zero if counter is 0
   Future<void> _divideCounter() async {
-    // Missing try-catch and setState may complete after dispose
     await Future.delayed(Duration(milliseconds: 100));
+    // Missing: if (!mounted) return;
     setState(() {
-      int result = 100 ~/ _counter;
+      int result = 100 ~/ _counter; // Can crash if _counter = 0!
       print('Result: $result');
     });
   }
   
-  // Subtle bug: Comparing floating point with ==
+  // Bug 14: Comparing floating point with ==
   bool _isStatisticsValid() {
     if (_history.isEmpty) {
       return false;
     }
     var avg = _history.reduce((a, b) => a + b) / _history.length;
     const double epsilon = 1e-9;
-    return (avg - 0.0).abs() < epsilon; // Use tolerance-based floating point comparison
+    return avg.abs() < epsilon; // Use tolerance-based comparison instead of direct ==
+  }
+  
+  // Bug 15: String comparison case-sensitive
+  bool _checkTitle(String input) {
+    // เปรียบเทียบแบบไม่สนใจตัวพิมพ์เล็ก/ใหญ่ โดย normalize ทั้งสองด้าน
+    return input.toLowerCase() == 'flutter demo'.toLowerCase();
   }
 
   void _resetCounter() {
@@ -96,16 +119,33 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       _addToHistory(_counter);
     });
   }
+  
+  // Bug 8: Using nullable without null check (using ! is unsafe)
+  void _printNullableString() {
+    if (nullableString != null) {
+      print(nullableString!.length);
+    } else {
+      print('nullableString is null');
+    }
+  }
+  
+  // Bug 9: Inefficient loop
+  int _calculateSum() {
+    int sum = 0;
+    for (int i = 0; i < _history.length; i++) {
+      sum += _history[i]; // Use += for clearer accumulation
+    }
+    return sum;
+  }
 
   void _addToHistory(int value) {
-    // Bug: Race condition - modifying list during iteration elsewhere
-    // Also: Not checking if value is different from last entry
+    // Bug 10: Race condition - modifying list during iteration elsewhere
+    // Bug 11: Not checking if value is different from last entry
     if (_historyIndex < _history.length - 1) {
       _history.removeRange(_historyIndex + 1, _history.length);
     }
-    _history.add(value);
+    _history.add(value); // Bug 12: No limit on history size - memory leak!
     _historyIndex = _history.length - 1;
-    // Subtle bug: No limit on history size - memory leak over time
   }
 
   void _undo() {
@@ -127,8 +167,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   }
 
   Map<String, dynamic> _getStatistics() {
-    // Bug: Calculating on every build - performance issue
-    // Also: Empty list check comes AFTER accessing _history[0]
+    // Bug 7: Performance issue - calculating on EVERY build!
+    // Should cache or use computed property
     if (_history.isEmpty) return {'avg': 0, 'max': 0, 'min': 0};
 
     int sum = 0;
@@ -209,9 +249,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
+            Text( // Bug 16: Missing const
               'Counter Value:',
-              style: TextStyle(fontSize: 18),
+              style: TextStyle(fontSize: 18), // Bug 17: This TextStyle should be const too
             ),
             const SizedBox(height: 10),
             ScaleTransition(
@@ -231,7 +271,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    const Text(
+                    Text( // Bug 18: Missing const - causes unnecessary rebuilds
                       'Statistics',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -265,8 +305,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                   icon: const Icon(Icons.refresh),
                   label: const Text('Reset'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.orange, // Bug 19: Hardcoded color
+                    foregroundColor: Colors.white,   // Bug 20: Should use theme colors
                   ),
                 ),
                 const SizedBox(width: 10),
