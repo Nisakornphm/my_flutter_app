@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -34,13 +35,16 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   int _historyIndex = 0;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  final _streamController = StreamController<int>(); // Bug 13: Never disposed!
   
   // Bug 1: Unused variables
   final String unusedVariable = 'This is never used';
   final double unusedDouble = 3.14159;
+  String? nullableString; // Bug: Never initialized, can be null
   
   // Bug 2: Magic number without explanation
   final int MAGIC_NUMBER = 42;
+  static const hardcodedValue = 999; // Bug: Another magic number
 
   @override
   void initState() {
@@ -91,14 +95,18 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     });
   }
   
-  // Subtle bug: Comparing floating point with ==
+  // Bug 14: Comparing floating point with ==
   bool _isStatisticsValid() {
     if (_history.isEmpty) {
       return false;
     }
     var avg = _history.reduce((a, b) => a + b) / _history.length;
-    const double epsilon = 1e-9;
-    return (avg - 0.0).abs() < epsilon; // Use tolerance-based floating point comparison
+    return avg == 0.0; // Bug: Direct comparison of doubles!
+  }
+  
+  // Bug 15: String comparison case-sensitive
+  bool _checkTitle(String input) {
+    return input == 'Flutter Demo'; // Bug: Should use equalsIgnoreCase
   }
 
   void _resetCounter() {
@@ -107,16 +115,29 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       _addToHistory(_counter);
     });
   }
+  
+  // Bug 8: Using nullable without null check
+  void _printNullableString() {
+    print(nullableString.length); // Crash if null!
+  }
+  
+  // Bug 9: Inefficient loop
+  int _calculateSum() {
+    int sum = 0;
+    for (int i = 0; i < _history.length; i++) {
+      sum = sum + _history[i]; // Should use += or reduce()
+    }
+    return sum;
+  }
 
   void _addToHistory(int value) {
-    // Bug: Race condition - modifying list during iteration elsewhere
-    // Also: Not checking if value is different from last entry
+    // Bug 10: Race condition - modifying list during iteration elsewhere
+    // Bug 11: Not checking if value is different from last entry
     if (_historyIndex < _history.length - 1) {
       _history.removeRange(_historyIndex + 1, _history.length);
     }
-    _history.add(value);
+    _history.add(value); // Bug 12: No limit on history size - memory leak!
     _historyIndex = _history.length - 1;
-    // Subtle bug: No limit on history size - memory leak over time
   }
 
   void _undo() {
@@ -220,9 +241,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
+            Text( // Bug 16: Missing const
               'Counter Value:',
-              style: TextStyle(fontSize: 18),
+              style: TextStyle(fontSize: 18), // Bug 17: This TextStyle should be const too
             ),
             const SizedBox(height: 10),
             ScaleTransition(
@@ -242,7 +263,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    const Text(
+                    Text( // Bug 18: Missing const - causes unnecessary rebuilds
                       'Statistics',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
@@ -276,8 +297,8 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
                   icon: const Icon(Icons.refresh),
                   label: const Text('Reset'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.orange, // Bug 19: Hardcoded color
+                    foregroundColor: Colors.white,   // Bug 20: Should use theme colors
                   ),
                 ),
                 const SizedBox(width: 10),
