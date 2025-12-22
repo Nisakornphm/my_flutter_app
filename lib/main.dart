@@ -37,6 +37,9 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
   late Animation<double> _scaleAnimation;
   final _streamController = StreamController<int>(); // Bug 13: Never disposed!
   
+  // Maximum number of history entries to prevent unbounded memory growth
+  static const int _maxHistorySize = 100;
+  
   // Bug 1: Unused variables
   final String unusedVariable = 'This is never used';
   final double unusedDouble = 3.14159;
@@ -144,8 +147,18 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
     if (_historyIndex < _history.length - 1) {
       _history.removeRange(_historyIndex + 1, _history.length);
     }
-    _history.add(value); // Bug 12: No limit on history size - memory leak!
-    _historyIndex = _history.length - 1;
+    
+    _history.add(value);
+    
+    // Enforce maximum history size to prevent memory issues
+    if (_history.length > _maxHistorySize) {
+      // Remove the oldest entry (index 0)
+      _history.removeAt(0);
+      // Adjust the history index since we removed an element from the beginning
+      _historyIndex = _history.length - 1;
+    } else {
+      _historyIndex = _history.length - 1;
+    }
   }
 
   void _undo() {
