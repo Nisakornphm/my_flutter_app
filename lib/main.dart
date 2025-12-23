@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -8,13 +7,13 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -23,395 +22,160 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
+
   final String title;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-// TODO: Add unit tests for counter logic
-// TODO: Add widget tests for UI interactions
-// TODO: Add integration tests for full user flows
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
-  final List<int> _history = [0];
-  int _historyIndex = 0;
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
-  final _streamController = StreamController<int>(); // Bug 13: Never disposed!
-  
-  // Maximum number of history entries to prevent unbounded memory growth
-  static const int _maxHistorySize = 100;
-  
-  // Bug 1: Unused variables
-  final String unusedVariable = 'This is never used';
-  final double unusedDouble = 3.14159;
-  String? nullableString; // Bug: Never initialized, can be null
-  
-  // TODO: Implement proper state management using Provider or Riverpod
-  // Current implementation uses setState which doesn't scale well
-  
-  // Bug 2: Magic numbers without explanation
-  /// Example magic number used for demonstration purposes in this sample.
-  final int MAGIC_NUMBER = 42;
-  /// Upper bound demo value used in this sample; 999 is chosen arbitrarily for UI/testing.
-  static const int hardcodedValue = 999;
+  double _result = 0.0;
+  bool _isProcessing = false;
+  List<int> _numbers = [];
 
-  @override
-  void initState() {
-    super.initState();
-    // Bug: Magic number - 200ms not explained
-    // TODO: Extract to named constant with explanation
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-    // Start the async operation once after the first frame.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _performAsyncOperation(this.context);
-    });
-  }
-
-  @override
-  void dispose() {
-    // Bug 3: Memory leak - AnimationController not disposed!
-    // _animationController.dispose();
-    _streamController.close(); // Fix Bug 13: Dispose StreamController to prevent memory leak
-    super.dispose();
-  }
-
-  // TODO: Consider using AnimatedBuilder or implicit animations
-  // Current approach triggers unnecessary rebuilds
   void _incrementCounter() {
     setState(() {
       _counter++;
-      _addToHistory(_counter);
-      // Bug: Unhandled Future - no error handling for animation
-      _animationController.forward().then((_) {
-        _animationController.reverse();
-        // Fix: Check if widget is still mounted before using context
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Counter: $_counter')),
-        );
-      }); // TODO: Add .catchError() or try-catch
     });
   }
   
-  // Bug 4: Async operation without mounted check
-  // Bug 5: Division by zero if counter is 0
-  // TODO: Add proper error handling with user feedback
-  // Should show dialog or snackbar when errors occur
-  Future<void> _divideCounter() async {
-    await Future.delayed(Duration(milliseconds: 100));
-    // Missing: if (!mounted) return;
+  // Bug: Division that can cause infinity
+  void _divideByZero() {
     setState(() {
-      int result = 100 ~/ _counter; // Can crash if _counter = 0!
-      print('Result: $result');
+      _result = _counter / 0; // Will produce Infinity
     });
   }
   
-  // Bug 14: Comparing floating point with ==
-  bool _isStatisticsValid() {
-    if (_history.isEmpty) {
-      return false;
+  // Bug: Unreachable if-else condition
+  String _checkStatus() {
+    if (_counter > 0) {
+      return 'Positive';
+    } else if (_counter < 0) {
+      return 'Negative';
+    } else if (_counter == 0) {
+      return 'Zero';
+    } else if (_counter > 10) { // This will never be reached!
+      return 'Greater than 10';
     }
-    var avg = _history.reduce((a, b) => a + b) / _history.length;
-    const double epsilon = 1e-9;
-    return avg.abs() < epsilon; // Use tolerance-based comparison instead of direct ==
+    return 'Unknown';
   }
   
-  // Bug 15: String comparison case-sensitive
-  bool _checkTitle(String input) {
-    // เปรียบเทียบแบบไม่สนใจตัวพิมพ์เล็ก/ใหญ่ โดย normalize ทั้งสองด้าน
-    return input.toLowerCase() == 'flutter demo'.toLowerCase();
-  }
-
-  void _resetCounter() {
-    setState(() {
-      _counter = 0;
-      _addToHistory(_counter);
-    });
-  }
-  
-  // Bug 9: Inefficient loop
-  int _calculateSum() {
+  // Performance issue: Inefficient loop that could be optimized
+  int _calculateSumSlow() {
     int sum = 0;
-    for (int i = 0; i < _history.length; i++) {
-      sum += _history[i]; // Use += for clearer accumulation
+    for (int i = 0; i < _counter; i++) {
+      for (int j = 0; j < 100; j++) {
+        sum = sum + 1; // Nested loop doing unnecessary work
+      }
     }
     return sum;
   }
-
-  // TODO: Extract history management to separate class/service
-  // This method has too many responsibilities
-  void _addToHistory(int value) {
-    // Bug 10: Race condition - modifying list during iteration elsewhere
-    // Bug 11: Not checking if value is different from last entry
-    if (_historyIndex < _history.length - 1) {
-      _history.removeRange(_historyIndex + 1, _history.length);
-    }
-    
-    _history.add(value);
-    
-    // Enforce maximum history size to prevent memory issues
-    if (_history.length > _maxHistorySize) {
-      // Remove excess entries from the beginning (oldest entries)
-      // Use removeRange for better performance when removing multiple entries
-      final excessCount = _history.length - _maxHistorySize;
-      _history.removeRange(0, excessCount);
-    }
-    
-    // Adjust the history index to point to the last entry
-    _historyIndex = _history.length - 1;
-  }
-
-  // TODO: Add documentation for public methods
-  // Missing: @param, @returns, usage examples
-  void _undo() {
-    if (_historyIndex > 0) {
-      setState(() {
-        _historyIndex--;
-        _counter = _history[_historyIndex];
-      });
-    }
-  }
-
-  void _redo() {
-    // TODO: Refactor _undo and _redo to reduce duplication
-    // Consider creating a generic _navigateHistory(int direction) method
-    if (_historyIndex < _history.length - 1) {
-      setState(() {
-        _historyIndex++;
-        _counter = _history[_historyIndex];
-      });
-    }
-  }
-
-  Map<String, dynamic> _getStatistics() {
-    // Bug 7: Performance issue - calculating on EVERY build!
-    // TODO: Cache this result or use memoization
-    // Currently recalculates even when _history hasn't changed
-    if (_history.isEmpty) return {'avg': 0, 'max': 0, 'min': 0};
-
-    int sum = 0;
-    int min = _history.first;
-    int max = _history.first;
-
-    for (final value in _history) {
-      sum += value;
-      if (value < min) {
-        min = value;
-      }
-      if (value > max) {
-        max = value;
-      }
-    }
-
-    final String avg = (sum / _history.length).toStringAsFixed(1);
-
-    return {
-      'avg': avg,
-      'max': max,
-      'min': min,
-    };
+  
+  // Simple bug: Missing null check
+  void _addNumber(int? number) {
+    _numbers.add(number!); // Will crash if number is null
   }
   
-  Future<void> _performAsyncOperation(BuildContext context) async {
-    // TODO: Make timeout configurable via settings
-    // Hardcoded 1 second may not suit all use cases
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Safely use the context only if the widget is still mounted after the async gap.
-    if (!context.mounted) {
-      return;
-    }
-
-    final theme = Theme.of(context);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Async operation completed',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onPrimary,
-          ),
-        ),
-        backgroundColor: theme.colorScheme.primary,
-      ),
-    );
-  }
-
-  // Fixed: Method now modifies state inside setState
-  void _unsafeStateModification() {
+  // Hard bug: Race condition with async operation
+  Future<void> _complexAsyncOperation() async {
+    _isProcessing = true;
+    await Future.delayed(Duration(seconds: 2));
     setState(() {
-      _counter++; // State change is now correctly wrapped in setState
+      _counter = _counter * 2;
+      _isProcessing = false; // Bug: setState after dispose possible
     });
+  }
+  
+  // Bug: Should use different loop type
+  void _populateList() {
+    _numbers.clear();
+    int i = 0;
+    while (i < _counter) { // Should use for loop instead
+      _numbers.add(i);
+      i++;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final stats = _getStatistics();
-    
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.undo),
-            onPressed: _historyIndex > 0 ? _undo : null,
-            tooltip: 'Undo',
-          ),
-          IconButton(
-            icon: const Icon(Icons.redo),
-            onPressed: _historyIndex < _history.length - 1 ? _redo : null,
-            tooltip: 'Redo',
-          ),
-        ],
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // TODO: Use localization (l10n) for all text strings
-            // Currently hardcoded in English only
-            const Text( // Bug 16: Missing const
-              'Counter Value:',
-              style: const TextStyle(fontSize: 18), // Bug 17: This TextStyle should be const too
-            ),
-            const SizedBox(height: 10),
-            ScaleTransition(
-              scale: _scaleAnimation,
-              child: Text(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const Text(
+                'You have pushed the button this many times:',
+              ),
+              Text(
                 '$_counter',
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              const SizedBox(height: 20),
+              
+              // Display result (may show Infinity)
+              Text(
+                'Result: $_result',
+                style: TextStyle(
+                  color: _result.isInfinite ? Colors.red : Colors.black,
                 ),
               ),
-            ),
-            const SizedBox(height: 30),
-            Card(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    const Text( // Bug 18: Missing const - causes unnecessary rebuilds
-                      'Statistics',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      // TODO: Add keys to list items for better performance
-                      children: [
-                        _StatItem(label: 'Average', value: stats['avg'].toString()),
-                        _StatItem(label: 'Max', value: stats['max'].toString()),
-                        _StatItem(label: 'Min', value: stats['min'].toString()),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'History: ${_history.length} entries',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
+              const SizedBox(height: 10),
+              
+              // Display status
+              Text('Status: ${_checkStatus()}'),
+              const SizedBox(height: 20),
+              
+              // Buttons
+              Wrap(
+                spacing: 10,
+                children: [
+                  ElevatedButton(
+                    onPressed: _divideByZero,
+                    child: const Text('Divide by Zero'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _calculateSumSlow(); // Performance issue
+                      });
+                    },
+                    child: const Text('Calculate Slow'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => _addNumber(null), // Will crash
+                    child: const Text('Add Null'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _isProcessing ? null : _complexAsyncOperation,
+                    child: Text(_isProcessing ? 'Processing...' : 'Async Op'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _populateList,
+                    child: const Text('Populate List'),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _resetCounter,
-                  icon: const Icon(Icons.refresh),
-                  label: const Text('Reset'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    foregroundColor: Theme.of(context).colorScheme.onSecondary,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                // Bug 7: Divide button with potential crash
-                ElevatedButton.icon(
-                  onPressed: _counter != 0 ? _divideCounter : null,
-                  icon: const Icon(Icons.calculate),
-                  label: const Text('Divide'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton.icon(
-                  onPressed: _history.length > 1
-                      ? () {
-                          // TODO: Extract this to separate method
-                          // Deep nesting makes code hard to read and test
-                          setState(() {
-                            _history.clear();
-                            _history.add(_counter);
-                            _historyIndex = 0;
-                          });
-                        }
-                      : null,
-                  icon: const Icon(Icons.delete_sweep),
-                  label: const Text('Clear History'),
-                ),
-              ],
-            ),
-          ],
+              const SizedBox(height: 20),
+              
+              // Display list
+              if (_numbers.isNotEmpty)
+                Text('List has ${_numbers.length} items'),
+            ],
+          ),
         ),
       ),
-      // TODO: Add semantic labels for screen readers
-      // TODO: Support keyboard navigation
-      // TODO: Ensure color contrast meets WCAG AA standards
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _StatItem({required this.label, required this.value});
-
-  // TODO: Use theme colors instead of hardcoded values
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue, // Bug: Hardcoded color
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
     );
   }
 }
