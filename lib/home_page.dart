@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _generateInfiniteItems() {
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; ; i++) {
       _counter++;
       _items.add(_counter);
     }
