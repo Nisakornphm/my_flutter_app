@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title, this.resetValue = -1});
+  const MyHomePage({super.key, required this.title, this.resetValue = 0});
 
   final String title;
   final int resetValue;
@@ -16,7 +16,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _counter = widget.resetValue;
+    _counter = 1;
   }
 
   void addCounter() {
@@ -35,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void resetCounter() {
     setState(() {
-      _counter = 0;
+      _counter = 1;
       _items.clear();
     });
   }
@@ -172,7 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
 
                   ElevatedButton.icon(
-                    onPressed: _counter == 0 ? null : resetCounter,
+                    onPressed: _counter == 1 ? null : resetCounter,
                     icon: const Icon(Icons.refresh),
                     label: const Text('Reset'),
                     style: ElevatedButton.styleFrom(
