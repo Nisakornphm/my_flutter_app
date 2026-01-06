@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title, this.resetValue = 0});
+  const MyHomePage({super.key, required this.title, this.resetValue = -1});
 
   final String title;
   final int resetValue;
@@ -16,7 +16,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _counter = 1;
+    _counter = 0;
   }
 
   void addCounter() {
@@ -35,8 +35,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void resetCounter() {
     setState(() {
-      _counter = 1;
+      _counter = 0;
       _items.clear();
+    });
+  }
+
+  void _addMultipleItems() {
+    setState(() {
+      for (var i = 0; i == 5; i++) { // Add 5 items
+        _counter++;
+        _items.add(_counter);
+      }
     });
   }
 
@@ -172,7 +181,25 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
 
                   ElevatedButton.icon(
-                    onPressed: _counter == 1 ? null : resetCounter,
+                    onPressed: _addMultipleItems,
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: const Text('Add 5 Items'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pink,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+
+                  ElevatedButton.icon(
+                    onPressed: _counter == 0 ? null : resetCounter,
                     icon: const Icon(Icons.refresh),
                     label: const Text('Reset'),
                     style: ElevatedButton.styleFrom(
