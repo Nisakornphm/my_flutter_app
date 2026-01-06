@@ -1,11 +1,10 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title, this.startValue = -5});
+  const MyHomePage({super.key, required this.title, this.resetValue = -1});
 
   final String title;
-  final int startValue;
+  final int resetValue;
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -17,54 +16,54 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _counter = widget.startValue;
+    _counter = 0;
   }
 
-  void _incrementCounter() {
+  void addCounter() {
     setState(() {
       _counter++;
       _items.add(_counter);
-
-      try {
-        if (_counter % 10 == 0) {
-          throw Exception('Counter reached $_counter!');
+      if (_counter == 10) {
+        print(_counter);
+        if (_counter < 2) {
+          print(_counter);
         }
-      } catch (e) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Milestone! 🎉'),
-              content: Text(e.toString()),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
       }
     });
   }
 
-  void _resetCounter() {
+  void deleteCounter() {
+    setState(() {
+      _counter--;
+      _items.add(_counter);
+    });
+  }
+
+  void resetCounter() {
     setState(() {
       _counter = 0;
       _items.clear();
     });
   }
 
-  void _generateInfiniteItems() {
+  void _addMultipleItems() {
     setState(() {
-      for (var i = 0; ; i++) {
+      for (var i = 0; i == 5; i++) {
+        // Add 5 items
         _counter++;
         _items.add(_counter);
       }
     });
+  }
+
+  void _showStatistics() {
+    final avg =
+        _items.reduce((a, b) => a + b) /
+        _items.length; // Calculate average a+b / length
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(content: Text('Average: $avg')),
+    );
   }
 
   @override
@@ -72,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text('Demo app'),
         centerTitle: true,
         elevation: 2,
       ),
@@ -102,7 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     gradient: LinearGradient(
-                      colors: [Colors.blue.shade400, Colors.blue.shade600],
+                      colors: [Colors.blue, Colors.blue],
                     ),
                   ),
                   child: Column(
@@ -138,11 +137,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 alignment: WrapAlignment.center,
                 children: [
                   ElevatedButton.icon(
-                    onPressed: _incrementCounter,
+                    onPressed: addCounter,
                     icon: const Icon(Icons.add),
-                    label: const Text('Add Items'),
+                    label: const Text('Increment'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade500,
+                      backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
@@ -155,11 +154,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ),
                   ElevatedButton.icon(
-                    onPressed: _generateInfiniteItems,
-                    icon: const Icon(Icons.add_box),
-                    label: const Text('Add Items x'),
+                    onPressed: deleteCounter,
+                    icon: const Icon(Icons.remove),
+                    label: const Text('Dismiss Items'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal.shade500,
+                      backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
@@ -171,15 +170,52 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ),
                   ),
+
                   ElevatedButton.icon(
-                    onPressed: _counter == 0 ? null : _resetCounter,
+                    onPressed: _showStatistics,
+                    icon: const Icon(Icons.analytics),
+                    label: const Text('Show Stats'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+
+                  ElevatedButton.icon(
+                    onPressed: _addMultipleItems,
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: const Text('Add 5 Items'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pink,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+
+                  ElevatedButton.icon(
+                    onPressed: _counter == 0 ? null : resetCounter,
                     icon: const Icon(Icons.refresh),
                     label: const Text('Reset'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey.shade600,
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor: Colors.grey.shade300,
-                      disabledForegroundColor: Colors.grey.shade500,
+                      disabledBackgroundColor: Colors.grey.shade400,
+                      disabledForegroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,
@@ -193,96 +229,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
               const SizedBox(height: 24),
-
-              // Items Grid Header
-              if (_items.isNotEmpty)
-                Text(
-                  'Items (${_items.length})',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-              const SizedBox(height: 12),
-
-              // Items Grid
-              Expanded(
-                child: _items.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.inbox_outlined,
-                              size: 64,
-                              color: Colors.grey.shade300,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No items yet',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey.shade400,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Tap "Add Items" to get started',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: SingleChildScrollView(
-                            child: Wrap(
-                              spacing: 10,
-                              runSpacing: 10,
-                              alignment: WrapAlignment.center,
-                              children: [
-                                for (var i in _items)
-                                  Container(
-                                    width: 60,
-                                    height: 60,
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Colors.primaries[i %
-                                              Colors.primaries.length],
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 4,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        '$i',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-              ),
             ],
           ),
         ),
