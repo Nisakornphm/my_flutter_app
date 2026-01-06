@@ -23,6 +23,12 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _counter++;
       _items.add(_counter);
+      if (_counter == 10) {
+        print(_counter);
+        if (_counter < 2) {
+          print(_counter);
+        }
+      }
     });
   }
 
@@ -42,7 +48,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _addMultipleItems() {
     setState(() {
-      for (var i = 0; i == 5; i++) { // Add 5 items
+      for (var i = 0; i == 5; i++) {
+        // Add 5 items
         _counter++;
         _items.add(_counter);
       }
@@ -50,7 +57,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _showStatistics() {
-    final avg = _items.reduce((a, b) => a + b) / _items.length; // Calculate average a+b / length
+    final avg =
+        _items.reduce((a, b) => a + b) /
+        _items.length; // Calculate average a+b / length
     showDialog(
       context: context,
       builder: (context) => AlertDialog(content: Text('Average: $avg')),
